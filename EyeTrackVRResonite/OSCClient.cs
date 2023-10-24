@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Elements.Core;
-using EyeTrackVR;
 using OscCore;
 using OscCore.LowLevel;
 
@@ -16,7 +15,10 @@ namespace EyeTrackVRResonite
     public class ETVROSC
     {
         private static bool _oscSocketState;
-        public static readonly Dictionary<string, float> EyeDataWithAddress = new();
+        public readonly object Lock = new();
+        public readonly Dictionary<string, float> Parameters = new();
+        public readonly float2[] EyeLeftRightEuler = new float2[2];
+        public DateTime LastUpdate = DateTime.MinValue;
 
         private static UdpClient? _receiver;
         private static Task? _task;
@@ -36,14 +38,11 @@ namespace EyeTrackVRResonite
                 ? new UdpClient(new IPEndPoint(candidate, port.Value))
                 : new UdpClient(new IPEndPoint(candidate, DefaultPort));
 
-            foreach (var shape in ETVRExpressions.EyeDataWithAddress)
-                EyeDataWithAddress.Add(shape, 0f);
-
             _oscSocketState = true;
             _task = Task.Run(ListenLoop);
         }
 
-        private static async void ListenLoop()
+        private async void ListenLoop()
         {
             UniLog.Log("Started EyeTrackVR loop");
             while (_oscSocketState)
@@ -64,23 +63,42 @@ namespace EyeTrackVRResonite
             }
         }
 
-        private static void ProcessOscMessage(OscMessageRaw message)
+        private const string PARAM_PREFIX = "/avatar/parameters/FT/v2/";
+        private void ProcessOscMessage(OscMessageRaw message)
         {
-            if (!EyeDataWithAddress.ContainsKey(message.Address))
+
+            if (message.Address == "/tracking/eye/LeftRightPitchYaw")
+            {
+                var arg0 = message[0];
+                var arg1 = message[1];
+                var arg2 = message[2];
+                var arg3 = message[3];
+
+                EyeLeftRightEuler[0] = new float2(message.ReadFloat(ref arg0), message.ReadFloat(ref arg1));
+                EyeLeftRightEuler[1] = new float2(message.ReadFloat(ref arg2), message.ReadFloat(ref arg3));
+                LastUpdate = DateTime.Now;
+                return;
+            }
+            else if (!message.Address.StartsWith(PARAM_PREFIX))
                 return;
 
+            var address = message.Address.Substring(PARAM_PREFIX.Length);
             var arg = message[0];
-
             switch (arg.Type)
             {
                 case (OscToken.Float):
-                    EyeDataWithAddress[message.Address] = message.ReadFloat(ref arg);
+                    lock (Lock)
+                    {
+                        Parameters[address] = message.ReadFloat(ref arg);
+                    }
                     break;
                 case (OscToken.Int):
-                    EyeDataWithAddress[message.Address] = message.ReadInt(ref arg);
+                    lock (Lock)
+                    {
+                        Parameters[address] = message.ReadInt(ref arg);
+                    }
                     break;
                 default:
-                    Console.WriteLine($"Unknown OSC type: {arg.Type}");
                     break;
             }
         }

@@ -19,7 +19,7 @@
 
     <PropertyGroup Condition="'$(ResonitePath)'==''">
         <ResonitePath>$(MSBuildThisFileDirectory)Resonite/</ResonitePath>
-        <ResonitePath Condition="Exists('/home/plyshka/Games/SteamLibrary/steamapps/common/Resonite/')">/home/plyshka/Games/SteamLibrary/steamapps/common/Resonite/</ResonitePath>
+        <ResonitePath Condition="Exists('/data/steam/steamapps/common/Resonite/')">/home/plyshka/Games/SteamLibrary/steamapps/common/Resonite/</ResonitePath>
         <ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite\</ResonitePath>
         <ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite/</ResonitePath>
     </PropertyGroup>
