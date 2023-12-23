@@ -114,6 +114,9 @@ namespace EyeTrackVRResonite
             public int UpdateOrder => 100;
             public static Dictionary<World, Dictionary<string, ValueStream<float>>> VRCFTDictionary = new();
             private List<KeyValuePair<string, float>> _etvrParameters = new();
+            private static DateTime LastBlink = DateTime.MinValue;
+            private static DateTime NextBlink = DateTime.MinValue;
+            private static Random _random = new Random();
 
             public static readonly Dictionary<string, Func<float, KeyValuePair<string, float>>[]> FaceTrackParams = new()
             {
@@ -210,8 +213,17 @@ namespace EyeTrackVRResonite
                 _eyes.LeftEye.RawPosition = float3.Zero;
                 _eyes.RightEye.RawPosition = float3.Zero;
 
-                var eyeLidLeft = Parameter("EyeLidLeft");
-                var eyeLidRight = Parameter("EyeLidRight");
+                if (NextBlink < DateTime.UtcNow)
+                {
+                    NextBlink = DateTime.UtcNow.AddSeconds(3 + _random.NextDouble() * 6);
+                    LastBlink = DateTime.UtcNow;
+                }
+
+                var secondsSinceLastBlink = (DateTime.UtcNow - LastBlink).TotalSeconds;
+                var openness = secondsSinceLastBlink > 0.3 ? 1f : 1f - (float)Math.Sin(Math.Min(secondsSinceLastBlink * 21f, 1f));
+
+                var eyeLidLeft = openness;
+                var eyeLidRight = openness;
 
                 _eyes.LeftEye.Openness = MathX.Remap(eyeLidLeft, 0f, 0.75f, 0f, 1f);
                 _eyes.RightEye.Openness = MathX.Remap(eyeLidRight, 0f, 0.75f, 0f, 1f);
