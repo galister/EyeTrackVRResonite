@@ -1,4 +1,8 @@
-# EyeTrackVRResonite
+# EyeTrackVRResonite Fork for OscAvMgr support
+
+This fork is made specifically to work with [OscAvMgr](https://github.com/galister/oscavmgr). It supports both Face and Eye tracking.
+
+# Original Readme
 
 A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for [Resonite](https://resonite.com/) that enables the use of [EyeTrackVR](https://github.com/EyeTrackVR/EyeTrackVR).
 
