@@ -147,7 +147,7 @@ namespace EyeTrackVRResonite
 
             public void RegisterInputs(InputInterface inputInterface)
             {
-                _eyes = new Eyes(inputInterface, "EyeTrackVR Tracking");
+                _eyes = new Eyes(inputInterface, "EyeTrackVR Tracking", true);
             }
 
             public void UpdateInputs(float deltaTime)
